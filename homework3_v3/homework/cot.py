@@ -8,7 +8,26 @@ class CoTModel(BaseLLM):
         better if you provide a chat template. self.tokenizer.apply_chat_template can help here
         """
 
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        messages = [
+              {"role": "system", "content": "You are a precise unit conversion assistant. Show steps and end with exactly <answer>VALUE</answer>."},
+              {"role": "user", "content": "How many seconds are there in 2 hours?"},
+              {"role": "assistant", "content": "1 hour = 3600 seconds.\n2 * 3600 = 7200.\n<answer>7200</answer>"},
+              {"role": "user", "content": "Convert 5 kilometers to meters."},
+              {"role": "assistant", "content": "1 km = 1000 m.\n5 * 1000 = 5000.\n<answer>5000</answer>"},
+              {"role": "user", "content": "Convert 3.7 liters to milliliters."},
+              {"role": "assistant", "content": "1 L = 1000 mL.\n3.7 * 1000 = 3700.\n<answer>3700</answer>"},
+              {"role": "user", "content": question},
+          ]
+        
+        # Apply the chat template to format the messages
+        prompt = self.tokenizer.apply_chat_template(
+            messages,
+            add_generation_prompt=True,
+            tokenize=False
+        )
+        
+        return prompt
 
 
 def load() -> CoTModel:
