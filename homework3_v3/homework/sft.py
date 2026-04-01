@@ -51,7 +51,12 @@ def format_example(prompt: str, answer: str) -> dict[str, str]:
     """
     # raise NotImplementedError()
     answer_float = float(answer)
-    formatted_answer = f"<answer>{answer_float:.1f}</answer>" if answer_float == int(answer_float) else f"<answer>{answer_float:.2f}</answer>"
+    # Keep consistent answer output so the model learns exact tag/text format.
+    formatted_answer = f"<answer>{answer_float:.4f}</answer>"
+    return {
+        "question": prompt,
+        "answer": formatted_answer
+    }
 
     return {
         "question": prompt,
@@ -90,24 +95,21 @@ def train_model(
     from peft import get_peft_model, LoraConfig, TaskType
     from transformers import Trainer, TrainingArguments
 
-    # Load base model and dataset
     llm = BaseLLM()
     train_dataset = Dataset("train")
 
-    # Create LoRA config with reasonable parameters for a 360M model
     lora_config = LoraConfig(
-        r=16,  # Rank - keeps model size reasonable
-        lora_alpha=64,  # 4x the rank
+        r=32,
+        lora_alpha=128,
         target_modules="all-linear",
         bias="none",
         task_type=TaskType.CAUSAL_LM,
-        lora_dropout=0.1,
+        lora_dropout=0.05,
     )
 
-    # Apply LoRA to the model
+    # Applying LoRA to the model
     llm.model = get_peft_model(llm.model, lora_config)
 
-    # Enable input requires grad for gradient checkpointing
     if llm.device == "cuda":
         llm.model.enable_input_require_grads()
 
@@ -122,9 +124,11 @@ def train_model(
     training_args = TrainingArguments(
         output_dir=output_dir,
         logging_dir=output_dir,
-        num_train_epochs=3,
-        per_device_train_batch_size=32,
-        learning_rate=1e-4,
+        num_train_epochs=8,
+        per_device_train_batch_size=16,
+        learning_rate=3e-5,
+        weight_decay=0.01,
+        fp16=True,
         gradient_checkpointing=True,
         optim="adamw_8bit",
         report_to="tensorboard",

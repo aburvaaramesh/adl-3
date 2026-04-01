@@ -120,7 +120,7 @@ class BaseLLM:
             generate_kwargs.update(
                 {
                     "do_sample": True,
-                    "temperature": 0.25,
+                    "temperature": temperature,
                     "top_p": 0.95,
                     "top_k": 50,
                 }
