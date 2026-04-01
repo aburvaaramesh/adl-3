@@ -99,12 +99,12 @@ def train_model(
     train_dataset = Dataset("train")
 
     lora_config = LoraConfig(
-        r=32,
-        lora_alpha=128,
+        r=16,  # Rank - keeps model size reasonable
+        lora_alpha=64,  # 4x the rank
         target_modules="all-linear",
         bias="none",
         task_type=TaskType.CAUSAL_LM,
-        lora_dropout=0.05,
+        lora_dropout=0.1,
     )
 
     # Applying LoRA to the model
@@ -124,11 +124,9 @@ def train_model(
     training_args = TrainingArguments(
         output_dir=output_dir,
         logging_dir=output_dir,
-        num_train_epochs=8,
-        per_device_train_batch_size=16,
-        learning_rate=3e-5,
-        weight_decay=0.01,
-        fp16=True,
+        num_train_epochs=10,
+        per_device_train_batch_size=32,
+        learning_rate=1e-4,
         gradient_checkpointing=True,
         optim="adamw_8bit",
         report_to="tensorboard",
